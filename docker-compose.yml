@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:17
+    container_name: organizacao-db
+    environment:
+      POSTGRES_DB: organizacao
+      POSTGRES_USER: organizacao
+      POSTGRES_PASSWORD: organizacao123
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U organizacao -d organizacao"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: organizacao-api
+  datasource:
+    url: jdbc:postgresql://localhost:5433/organizacao
+    username: organizacao
+    password: organizacao123
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:troque-esta-chave-em-producao-com-pelo-menos-32-caracteres}
+    expiracao-horas: 12
+  cors:
+    origens: http://localhost:5173
