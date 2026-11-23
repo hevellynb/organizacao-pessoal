@@ -10,4 +10,5 @@ public interface CategoriaRepository extends JpaRepository<CategoriaOrcamento, U
     Optional<CategoriaOrcamento> findByIdAndUsuarioId(UUID id, UUID usuarioId);
     Optional<CategoriaOrcamento> findByUsuarioIdAndNomeIgnoreCase(UUID usuarioId, String nome);
     long countByUsuarioId(UUID usuarioId);
+    Optional<CategoriaOrcamento> findFirstByUsuarioIdAndTipo(UUID usuarioId, TipoCategoria tipo);
 }

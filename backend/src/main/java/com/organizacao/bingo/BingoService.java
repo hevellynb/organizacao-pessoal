@@ -24,6 +24,9 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.organizacao.financas.AporteRepository;
+import com.organizacao.financas.AporteRepository.TotalDestino;
+import com.organizacao.financas.DestinoAporte;
 
 @Service
 public class BingoService {
@@ -53,11 +56,13 @@ public class BingoService {
     private final DespesaRepository despesas;
     private final RegraPontuacaoRepository regras;
     private final LancamentoPontosRepository lancamentos;
+    private final AporteRepository aportes;
 
     public BingoService(CartelaRepository cartelas, CelulaRepository celulas,
                         HabitoRepository habitos, RegistroHabitoRepository registros,
                         CategoriaRepository categorias, DespesaRepository despesas,
-                        RegraPontuacaoRepository regras, LancamentoPontosRepository lancamentos) {
+                        RegraPontuacaoRepository regras, LancamentoPontosRepository lancamentos,
+                        AporteRepository aportes) {
         this.cartelas = cartelas;
         this.celulas = celulas;
         this.habitos = habitos;
@@ -66,6 +71,7 @@ public class BingoService {
         this.despesas = despesas;
         this.regras = regras;
         this.lancamentos = lancamentos;
+        this.aportes = aportes;
     }
 
     // ==================== parte pública ====================
@@ -192,18 +198,21 @@ public class BingoService {
         Map<UUID, CategoriaOrcamento> cats = categorias
                 .findByUsuarioIdOrderByOrdemAscNomeAsc(usuarioId).stream()
                 .collect(Collectors.toMap(CategoriaOrcamento::getId, c -> c));
+        Map<DestinoAporte, BigDecimal> aportesMes = aportes.totaisPorDestino(usuarioId, ini, fim).stream()
+                .collect(Collectors.toMap(TotalDestino::getDestino, TotalDestino::getTotal));
         boolean encerrado = mes.isBefore(YearMonth.now(ZONA));
 
         Avaliacao[] resultado = new Avaliacao[TAMANHO];
         for (int i = 0; i < TAMANHO; i++) {
             resultado[i] = grade[i] == null ? Avaliacao.VAZIA
-                    : avaliar(grade[i], dias, gastos, cats, encerrado);
+                    : avaliar(grade[i], dias, gastos, cats, aportesMes, encerrado);
         }
         return resultado;
     }
 
     private Avaliacao avaliar(Celula c, Map<UUID, Long> dias, Map<UUID, BigDecimal> gastos,
-                              Map<UUID, CategoriaOrcamento> cats, boolean encerrado) {
+                              Map<UUID, CategoriaOrcamento> cats,
+                              Map<DestinoAporte, BigDecimal> aportesMes, boolean encerrado) {
         return switch (c.getTipo()) {
             case HABITO -> {
                 long feitos = c.getHabitoId() == null ? 0 : dias.getOrDefault(c.getHabitoId(), 0L);
@@ -216,12 +225,15 @@ public class BingoService {
                 if (cat == null) {
                     yield new Avaliacao(false, ZERO, ZERO, "REAIS", null);
                 }
-                BigDecimal gasto = gastos.getOrDefault(cat.getId(), ZERO);
                 BigDecimal orcamento = cat.getOrcamentoMensal();
-                if (cat.getTipo() == TipoCategoria.ECONOMIA) {
-                    yield new Avaliacao(orcamento.signum() > 0 && gasto.compareTo(orcamento) >= 0,
-                            gasto, orcamento, "REAIS", "META_ECONOMIA");
+                if (cat.getTipo() != TipoCategoria.COMUM) {
+                    DestinoAporte destino = cat.getTipo() == TipoCategoria.ECONOMIA
+                            ? DestinoAporte.RESERVA : DestinoAporte.FUNDO;
+                    BigDecimal aportado = aportesMes.getOrDefault(destino, ZERO);
+                    yield new Avaliacao(orcamento.signum() > 0 && aportado.compareTo(orcamento) >= 0,
+                            aportado, orcamento, "REAIS", "META_APORTE");
                 }
+                BigDecimal gasto = gastos.getOrDefault(cat.getId(), ZERO);
                 yield new Avaliacao(encerrado && gasto.compareTo(orcamento) <= 0,
                         gasto, orcamento, "REAIS", "LIMITE_GASTO");
             }

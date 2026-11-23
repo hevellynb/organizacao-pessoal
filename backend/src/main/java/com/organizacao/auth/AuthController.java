@@ -3,7 +3,11 @@ package com.organizacao.auth;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
+@Tag(name = "Autenticação")
+@SecurityRequirements
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

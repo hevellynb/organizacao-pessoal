@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,12 +32,14 @@ public class FinancasService {
     private final CategoriaRepository categorias;
     private final RendaRepository rendas;
     private final DespesaRepository despesas;
+    private final AporteService aportes;
 
     public FinancasService(CategoriaRepository categorias, RendaRepository rendas,
-                           DespesaRepository despesas) {
+                           DespesaRepository despesas, AporteService aportes) {
         this.categorias = categorias;
         this.rendas = rendas;
         this.despesas = despesas;
+        this.aportes = aportes;
     }
 
     // ================= categorias =================
@@ -108,7 +111,7 @@ public class FinancasService {
 
     @Transactional
     public DespesaResposta lancarDespesa(UUID usuarioId, DespesaRequest r) {
-        buscarCategoria(usuarioId, r.categoriaId());
+        exigirCategoriaComum(buscarCategoria(usuarioId, r.categoriaId()));
         Despesa d = new Despesa(usuarioId, r.categoriaId(), r.descricao().trim(),
                 r.valor(), r.data(), vazioParaNulo(r.observacao()));
         return DespesaResposta.de(despesas.save(d));
@@ -117,7 +120,8 @@ public class FinancasService {
     @Transactional
     public DespesaResposta atualizarDespesa(UUID usuarioId, UUID id, DespesaRequest r) {
         Despesa d = buscarDespesa(usuarioId, id);
-        buscarCategoria(usuarioId, r.categoriaId());
+        exigirCategoriaComum(buscarCategoria(usuarioId, d.getCategoriaId()));
+        exigirCategoriaComum(buscarCategoria(usuarioId, r.categoriaId()));
         d.atualizar(r.categoriaId(), r.descricao().trim(), r.valor(), r.data(),
                 vazioParaNulo(r.observacao()));
         return DespesaResposta.de(d);
@@ -125,7 +129,9 @@ public class FinancasService {
 
     @Transactional
     public void excluirDespesa(UUID usuarioId, UUID id) {
-        despesas.delete(buscarDespesa(usuarioId, id));
+        Despesa d = buscarDespesa(usuarioId, id);
+        exigirCategoriaComum(buscarCategoria(usuarioId, d.getCategoriaId()));
+        despesas.delete(d);
     }
 
     @Transactional(readOnly = true)
@@ -138,6 +144,24 @@ public class FinancasService {
         return lista.stream().map(DespesaResposta::de).toList();
     }
 
+    // ================= usados pelo módulo de recompensas =================
+
+    @Transactional(readOnly = true)
+    public BigDecimal fundoRecompensasRestante(UUID usuarioId, YearMonth mes) {
+        return aportes.saldoFundo(usuarioId, mes);
+    }
+
+    @Transactional
+    public void lancarNoFundoDeRecompensas(UUID usuarioId, String descricao,
+                                           BigDecimal valor, LocalDate data) {
+        CategoriaOrcamento fundo = categorias
+                .findFirstByUsuarioIdAndTipo(usuarioId, TipoCategoria.FUNDO_RECOMPENSAS)
+                .orElseThrow(() -> new RegraDeNegocioException(
+                        "Categoria 'Fundo de recompensas' não encontrada."));
+        despesas.save(new Despesa(usuarioId, fundo.getId(), descricao, valor, data,
+                "Resgate de recompensa"));
+    }
+
     // ================= painel =================
 
     @Transactional(readOnly = true)
@@ -146,33 +170,48 @@ public class FinancasService {
         Map<UUID, BigDecimal> gastos = despesas
                 .totaisPorCategoria(usuarioId, mes.atDay(1), mes.atEndOfMonth()).stream()
                 .collect(Collectors.toMap(TotalCategoria::getCategoriaId, TotalCategoria::getTotal));
+        Map<DestinoAporte, BigDecimal> aportadoNoMes = aportes.totaisDoMes(usuarioId, mes);
 
-        List<LinhaCategoria> linhas = cats.stream()
-                .map(c -> linha(c, gastos.getOrDefault(c.getId(), ZERO))).toList();
-
-        BigDecimal totalOrcado = soma(cats.stream().map(CategoriaOrcamento::getOrcamentoMensal));
-        BigDecimal totalDespesas = ZERO;       // gastos do dia a dia (sem a categoria Economia)
-        BigDecimal economiaPlanejada = ZERO;
-        BigDecimal economiaGuardada = ZERO;
-        BigDecimal economiaAcumulada = ZERO;
+        BigDecimal reservaPlanejada = ZERO;
+        BigDecimal fundoPlanejado = ZERO;
+        BigDecimal fundoGastoNoMes = ZERO;
+        BigDecimal totalDespesas = ZERO;
+        List<LinhaCategoria> linhas = new ArrayList<>();
 
         for (CategoriaOrcamento c : cats) {
             BigDecimal gasto = gastos.getOrDefault(c.getId(), ZERO);
-            if (c.getTipo() == TipoCategoria.ECONOMIA) {
-                economiaPlanejada = c.getOrcamentoMensal();
-                economiaGuardada = gasto;
-                economiaAcumulada = Objects.requireNonNullElse(
-                        despesas.totalAte(usuarioId, c.getId(), mes.atEndOfMonth()), ZERO);
-            } else {
-                totalDespesas = totalDespesas.add(gasto);
+            switch (c.getTipo()) {
+                case ECONOMIA -> reservaPlanejada = c.getOrcamentoMensal();
+                case FUNDO_RECOMPENSAS -> {
+                    fundoPlanejado = c.getOrcamentoMensal();
+                    fundoGastoNoMes = gasto;
+                }
+                case COMUM -> {
+                    linhas.add(linha(c, gasto));
+                    totalDespesas = totalDespesas.add(gasto);
+                }
             }
         }
 
+        BigDecimal reservaAportada = aportadoNoMes.getOrDefault(DestinoAporte.RESERVA, ZERO);
+        BigDecimal fundoAportado = aportadoNoMes.getOrDefault(DestinoAporte.FUNDO, ZERO);
         BigDecimal renda = renda(usuarioId, mes).valor();
-        BigDecimal saldo = renda.subtract(economiaPlanejada).subtract(totalDespesas);
 
-        return new PainelResposta(mes.toString(), renda, totalOrcado, economiaPlanejada,
-                economiaGuardada, economiaAcumulada, totalDespesas, saldo, linhas);
+        BigDecimal disponivel = renda.subtract(reservaAportada).subtract(fundoAportado)
+                .subtract(totalDespesas);
+        BigDecimal aposMetas = renda
+                .subtract(reservaPlanejada.max(reservaAportada))
+                .subtract(fundoPlanejado.max(fundoAportado))
+                .subtract(totalDespesas);
+
+        BigDecimal totalOrcado = soma(cats.stream().map(CategoriaOrcamento::getOrcamentoMensal));
+
+        return new PainelResposta(mes.toString(), renda, totalOrcado, totalDespesas,
+                disponivel, aposMetas,
+                new ReservaResumo(reservaPlanejada, reservaAportada, aportes.saldoReserva(usuarioId, mes)),
+                new FundoResumo(fundoPlanejado, fundoAportado, fundoGastoNoMes,
+                        aportes.saldoFundo(usuarioId, mes)),
+                linhas);
     }
 
     // ================= apoio =================
@@ -188,6 +227,13 @@ public class FinancasService {
 
     private BigDecimal soma(java.util.stream.Stream<BigDecimal> valores) {
         return valores.reduce(ZERO, BigDecimal::add);
+    }
+
+    private void exigirCategoriaComum(CategoriaOrcamento c) {
+        if (c.getTipo() != TipoCategoria.COMUM) {
+            throw new RegraDeNegocioException(
+                    "A reserva e o fundo recebem aportes. O fundo só gasta por resgate de recompensa.");
+        }
     }
 
     private CategoriaOrcamento buscarCategoria(UUID usuarioId, UUID id) {

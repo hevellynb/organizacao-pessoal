@@ -1,6 +1,16 @@
 package com.organizacao.usuario;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.util.Optional;
 import java.util.UUID;
 
-public interface RegraPontuacaoRepository extends JpaRepository<RegraPontuacao, UUID> { }
+public interface RegraPontuacaoRepository extends JpaRepository<RegraPontuacao, UUID> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from RegraPontuacao r where r.usuarioId = :usuarioId")
+    Optional<RegraPontuacao> travar(@Param("usuarioId") UUID usuarioId);
+}

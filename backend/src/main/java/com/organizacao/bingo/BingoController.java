@@ -2,6 +2,7 @@ package com.organizacao.bingo;
 
 import com.organizacao.auth.UsuarioAtual;
 import com.organizacao.bingo.BingoDtos.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -9,6 +10,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import java.time.YearMonth;
 
+@Tag(name = "Bingo e pontos")
 @RestController
 @RequestMapping("/api")
 public class BingoController {

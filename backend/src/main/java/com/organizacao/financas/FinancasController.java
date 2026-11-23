@@ -2,6 +2,7 @@ package com.organizacao.financas;
 
 import com.organizacao.auth.UsuarioAtual;
 import com.organizacao.financas.FinancasDtos.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Finanças")
 @RestController
 @RequestMapping("/api")
 public class FinancasController {

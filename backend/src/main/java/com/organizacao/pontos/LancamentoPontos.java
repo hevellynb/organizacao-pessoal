@@ -50,4 +50,9 @@ public class LancamentoPontos {
     public int getPontos() { return pontos; }
     public String getDescricao() { return descricao; }
     public OffsetDateTime getCriadoEm() { return criadoEm; }
+    public static LancamentoPontos resgate(UUID usuarioId, int pontos, UUID itemId, String descricao) {
+        LancamentoPontos l = new LancamentoPontos(usuarioId, TipoLancamento.RESGATE, -pontos, null, descricao);
+        l.itemId = itemId;
+        return l;
+    }
 }

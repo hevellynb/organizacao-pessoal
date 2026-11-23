@@ -51,14 +51,34 @@ public final class FinancasDtos {
         }
     }
 
+    // ---------- aportes ----------
+    public record AporteRequest(
+            @NotNull(message = "Informe o destino (RESERVA ou FUNDO).") DestinoAporte destino,
+            @NotNull(message = "Informe o valor.")
+            @DecimalMin(value = "0.01", message = "O valor deve ser maior que zero.")
+            @Digits(integer = 10, fraction = 2, message = "Use no máximo 2 casas decimais.") BigDecimal valor,
+            @NotNull(message = "Informe a data.") LocalDate data,
+            @Size(max = 300) String observacao) { }
+
+    public record AporteResposta(UUID id, DestinoAporte destino, BigDecimal valor,
+                                 LocalDate data, String observacao) {
+        public static AporteResposta de(Aporte a) {
+            return new AporteResposta(a.getId(), a.getDestino(), a.getValor(),
+                    a.getData(), a.getObservacao());
+        }
+    }
+
     // ---------- painel ----------
     public record LinhaCategoria(UUID id, String nome, TipoCategoria tipo, BigDecimal orcamento,
                                  BigDecimal gasto, BigDecimal restante, boolean estourou, int percentual) { }
 
+    public record ReservaResumo(BigDecimal planejado, BigDecimal aportadoNoMes, BigDecimal acumulado) { }
+
+    public record FundoResumo(BigDecimal planejado, BigDecimal aportadoNoMes,
+                              BigDecimal gastoNoMes, BigDecimal saldo) { }
+
     public record PainelResposta(String mes, BigDecimal renda, BigDecimal totalOrcado,
-                                 BigDecimal economiaPlanejada, BigDecimal economiaGuardada,
-                                 BigDecimal economiaAcumulada, BigDecimal totalDespesas,
-                                 BigDecimal saldoDisponivel, List<LinhaCategoria> categorias) { }
-
-
+                                 BigDecimal totalDespesas, BigDecimal saldoDisponivel,
+                                 BigDecimal saldoAposMetas, ReservaResumo reserva,
+                                 FundoResumo fundo, List<LinhaCategoria> categorias) { }
 }
