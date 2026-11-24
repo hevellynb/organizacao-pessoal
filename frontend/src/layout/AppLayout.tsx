@@ -1,13 +1,15 @@
-import { AppShell, Burger, Group, NavLink, Title } from '@mantine/core';
+import { Avatar, AppShell, Burger, Group, Menu, NavLink, Title, UnstyledButton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconChecklist,
   IconGift,
   IconLayoutDashboard,
   IconLayoutGrid,
+  IconLogout,
   IconWallet,
 } from '@tabler/icons-react';
 import { Link, Outlet, useLocation } from 'react-router';
+import { useAuth } from '../auth/useAuth';
 import { AlternarTema } from '../componentes/AlternarTema';
 
 const itensDoMenu = [
@@ -18,9 +20,19 @@ const itensDoMenu = [
   { rota: '/recompensas', rotulo: 'Recompensas', Icone: IconGift },
 ];
 
+function iniciais(nome: string): string {
+  return nome
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte.charAt(0).toUpperCase())
+    .join('');
+}
+
 export function AppLayout() {
   const [menuAberto, { toggle, close }] = useDisclosure();
   const { pathname } = useLocation();
+  const { usuario, sair } = useAuth();
 
   return (
     <AppShell
@@ -34,7 +46,27 @@ export function AppLayout() {
             <Burger opened={menuAberto} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Title order={3}>Organização Pessoal</Title>
           </Group>
-          <AlternarTema />
+
+          <Group gap="sm">
+            <AlternarTema />
+            <Menu position="bottom-end" width={220}>
+              <Menu.Target>
+                <UnstyledButton aria-label="Menu do usuário">
+                  <Avatar color="violet" radius="xl">
+                    {iniciais(usuario?.nome ?? '')}
+                  </Avatar>
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>{usuario?.nome}</Menu.Label>
+                <Menu.Label>{usuario?.email}</Menu.Label>
+                <Menu.Divider />
+                <Menu.Item leftSection={<IconLogout size={16} />} onClick={sair}>
+                  Sair
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
         </Group>
       </AppShell.Header>
 
