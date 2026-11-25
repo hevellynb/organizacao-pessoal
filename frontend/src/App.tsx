@@ -4,6 +4,8 @@ import { AppLayout } from './layout/AppLayout';
 import { LoginPage } from './paginas/LoginPage';
 import { PainelPage } from './paginas/PainelPage';
 import { PaginaEmBreve } from './paginas/PaginaEmBreve';
+import { HabitosPage } from './paginas/habitos/HabitosPage';
+import { FinancasPage } from './paginas/financas/FinancasPage';
 
 export default function App() {
   return (
@@ -13,9 +15,9 @@ export default function App() {
       <Route element={<RotaProtegida />}>
         <Route element={<AppLayout />}>
           <Route index element={<PainelPage />} />
-          <Route path="habitos" element={<PaginaEmBreve titulo="Hábitos" />} />
+          <Route path="habitos" element={<HabitosPage />} />
           <Route path="bingo" element={<PaginaEmBreve titulo="Bingo" />} />
-          <Route path="financas" element={<PaginaEmBreve titulo="Finanças" />} />
+          <Route path="financas" element={<FinancasPage />} />
           <Route path="recompensas" element={<PaginaEmBreve titulo="Recompensas" />} />
         </Route>
       </Route>
