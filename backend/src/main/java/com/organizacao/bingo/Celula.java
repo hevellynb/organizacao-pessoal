@@ -53,6 +53,13 @@ public class Celula {
         this.concluidaManual = false;
     }
 
+    /** Cópia para outra cartela (a marcação manual recomeça desmarcada). */
+    public Celula copiarPara(UUID novaCartelaId) {
+        Celula copia = new Celula(novaCartelaId, this.posicao);
+        copia.definir(titulo, tipo, habitoId, metaDias, categoriaId);
+        return copia;
+    }
+
     public void setConcluidaManual(boolean v) { this.concluidaManual = v; }
 
     public short getPosicao() { return posicao; }

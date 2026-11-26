@@ -88,8 +88,14 @@ export function CelulaBingo({
           aria-label={`${celula.titulo}. ${celula.concluida ? 'Concluído' : 'Pendente'}. Editar desafio.`}
         >
           <Icone size={14} className={classes.icone} />
-          <span className={classes.titulo}>{celula.titulo}</span>
-          {mostrarBarra ? <Progress value={percentual} size={4} radius="xl" color={cor} /> : <span />}
+          <div className={classes.centro}>
+            <span className={classes.titulo}>{celula.titulo}</span>
+          </div>
+          {mostrarBarra ? (
+            <Progress value={percentual} size={4} radius="xl" color={cor} w="100%" />
+          ) : (
+            <span className={classes.espaco} />
+          )}
         </UnstyledButton>
 
         {manual ? (

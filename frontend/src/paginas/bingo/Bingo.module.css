@@ -1,12 +1,46 @@
+/* ---------- distribuição da página: grade + resumo ---------- */
+.layout {
+  display: grid;
+  gap: var(--mantine-spacing-lg);
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'resumo'
+    'grade';
+}
+
+.areaResumo {
+  grid-area: resumo;
+}
+
+.areaGrade {
+  grid-area: grade;
+  width: 100%;
+}
+
+/* no desktop: grade à esquerda, resumo à direita, tudo visível sem rolar */
+@media (min-width: 62em) {
+  .layout {
+    grid-template-columns: auto minmax(260px, 1fr);
+    grid-template-areas: 'grade resumo';
+    align-items: start;
+  }
+
+  .areaGrade {
+    width: clamp(360px, calc(100vh - 300px), 540px);
+  }
+}
+
+/* ---------- célula ---------- */
 .celula {
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: space-between;
   width: 100%;
   aspect-ratio: 1 / 1;
-  padding: 6px;
-  text-align: left;
+  padding: 6px 4px;
+  text-align: center;
   border-radius: var(--mantine-radius-md);
   border: 1px solid var(--mantine-color-default-border);
   background: var(--mantine-color-default);
@@ -29,7 +63,6 @@
 }
 
 .vazia {
-  align-items: center;
   justify-content: center;
   border-style: dashed;
   background: transparent;
@@ -49,18 +82,36 @@
 }
 
 .icone {
+  flex-shrink: 0;
   opacity: 0.7;
+}
+
+/* o título ocupa o meio da célula, centralizado na horizontal e na vertical */
+.centro {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
 }
 
 .titulo {
   display: -webkit-box;
   overflow: hidden;
-  font-size: clamp(10px, 2.6vw, 13px);
+  font-size: clamp(10px, 2.6vw, 12.5px);
   font-weight: 600;
   line-height: 1.2;
+  text-align: center;
   word-break: break-word;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+}
+
+.espaco {
+  display: block;
+  height: 4px;
+  flex-shrink: 0;
 }
 
 .marca {

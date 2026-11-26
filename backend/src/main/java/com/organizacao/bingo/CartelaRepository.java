@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface CartelaRepository extends JpaRepository<Cartela, UUID> {
     Optional<Cartela> findByUsuarioIdAndMes(UUID usuarioId, LocalDate mes);
     List<Cartela> findByUsuarioIdAndFechadaFalse(UUID usuarioId);
+    Optional<Cartela> findFirstByUsuarioIdAndMesLessThanOrderByMesDesc(UUID usuarioId, LocalDate mes);
 }

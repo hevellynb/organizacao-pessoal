@@ -157,6 +157,7 @@ public class BingoService {
     // ==================== sincronização de pontos ====================
 
     private void sincronizar(UUID usuarioId) {
+        garantirCartelaDoMesAtual(usuarioId);
         RegraPontuacao regra = regraDe(usuarioId);
         YearMonth atual = YearMonth.now(ZONA);
         for (Cartela c : cartelas.findByUsuarioIdAndFechadaFalse(usuarioId)) {
@@ -256,14 +257,23 @@ public class BingoService {
 
     private CartelaResposta montar(UUID usuarioId, YearMonth mes) {
         int saldo = saldoPontos(usuarioId);
-        Optional<Cartela> opt = cartelas.findByUsuarioIdAndMes(usuarioId, mes.atDay(1));
-        if (opt.isEmpty()) {
-            List<CelulaResposta> vazias = new ArrayList<>();
-            for (int i = 0; i < TAMANHO; i++) vazias.add(CelulaResposta.vazia(i));
-            return new CartelaResposta(null, mes.toString(), false, vazias, List.of(), 0, false, 0, saldo);
+        Optional<Cartela> existente = cartelas.findByUsuarioIdAndMes(usuarioId, mes.atDay(1));
+
+        UUID id = null;
+        boolean fechada = false;
+        int pontosDoMes = 0;
+        Celula[] grade;
+
+        if (existente.isPresent()) {
+            Cartela cartela = existente.get();
+            id = cartela.getId();
+            fechada = cartela.isFechada();
+            grade = grade(id);
+            pontosDoMes = valor(lancamentos.somaPorCartela(usuarioId, id, TipoLancamento.GANHO_BINGO));
+        } else {
+            grade = previaDeMesFuturo(usuarioId, mes);
         }
-        Cartela cartela = opt.get();
-        Celula[] grade = grade(cartela.getId());
+
         Avaliacao[] av = avaliarGrade(usuarioId, mes, grade);
         Placar p = placar(av);
 
@@ -279,10 +289,8 @@ public class BingoService {
                         a.unidade(), a.regra()));
             }
         }
-        int pontosDoMes = valor(lancamentos.somaPorCartela(
-                usuarioId, cartela.getId(), TipoLancamento.GANHO_BINGO));
-        return new CartelaResposta(cartela.getId(), mes.toString(), cartela.isFechada(), lista,
-                p.linhas(), p.linhas().size(), p.cheia(), pontosDoMes, saldo);
+        return new CartelaResposta(id, mes.toString(), fechada, lista, p.linhas(),
+                p.linhas().size(), p.cheia(), pontosDoMes, saldo);
     }
 
     // ==================== apoio ====================
@@ -299,8 +307,7 @@ public class BingoService {
         if (mes.isBefore(YearMonth.now(ZONA))) {
             throw new RegraDeNegocioException("Cartelas de meses encerrados não podem ser alteradas.");
         }
-        return cartelas.findByUsuarioIdAndMes(usuarioId, mes.atDay(1))
-                .orElseGet(() -> cartelas.save(new Cartela(usuarioId, mes.atDay(1))));
+        return obterOuCriarCartela(usuarioId, mes);
     }
 
     private void validarPosicao(int posicao) {
@@ -340,5 +347,49 @@ public class BingoService {
 
     private int valor(Long soma) {
         return soma == null ? 0 : soma.intValue();
+    }
+
+    /** Se o mês atual ainda não tem cartela e existe uma anterior, cria a atual copiando a anterior. */
+    private void garantirCartelaDoMesAtual(UUID usuarioId) {
+        YearMonth atual = YearMonth.now(ZONA);
+        LocalDate primeiro = atual.atDay(1);
+        if (cartelas.findByUsuarioIdAndMes(usuarioId, primeiro).isEmpty()) {
+            regras.travar(usuarioId); // serializa pedidos simultâneos
+            if (cartelas.findByUsuarioIdAndMes(usuarioId, primeiro).isEmpty()
+                    && cartelas.findFirstByUsuarioIdAndMesLessThanOrderByMesDesc(usuarioId, primeiro).isPresent()) {
+                criarCartelaCopiando(usuarioId, atual);
+            }
+        }
+    }
+
+    private Cartela obterOuCriarCartela(UUID usuarioId, YearMonth mes) {
+        return cartelas.findByUsuarioIdAndMes(usuarioId, mes.atDay(1)).orElseGet(() -> {
+            regras.travar(usuarioId);
+            return cartelas.findByUsuarioIdAndMes(usuarioId, mes.atDay(1))
+                    .orElseGet(() -> criarCartelaCopiando(usuarioId, mes));
+        });
+    }
+
+    private Cartela criarCartelaCopiando(UUID usuarioId, YearMonth mes) {
+        Cartela nova = cartelas.save(new Cartela(usuarioId, mes.atDay(1)));
+        cartelas.findFirstByUsuarioIdAndMesLessThanOrderByMesDesc(usuarioId, mes.atDay(1))
+                .ifPresent(anterior -> celulas.findByCartelaId(anterior.getId())
+                        .forEach(c -> celulas.save(c.copiarPara(nova.getId()))));
+        return nova;
+    }
+
+    /** Para um mês futuro sem cartela: mostra as metas da cartela anterior, sem gravar nada. */
+    private Celula[] previaDeMesFuturo(UUID usuarioId, YearMonth mes) {
+        Celula[] previa = new Celula[TAMANHO];
+        if (!mes.isAfter(YearMonth.now(ZONA))) {
+            return previa; // meses passados e o atual não têm prévia
+        }
+        cartelas.findFirstByUsuarioIdAndMesLessThanOrderByMesDesc(usuarioId, mes.atDay(1))
+                .ifPresent(anterior -> {
+                    for (Celula c : celulas.findByCartelaId(anterior.getId())) {
+                        previa[c.getPosicao()] = c.copiarPara(null); // cópia só em memória
+                    }
+                });
+        return previa;
     }
 }
