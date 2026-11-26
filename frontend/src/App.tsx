@@ -3,10 +3,10 @@ import { RotaProtegida } from './auth/RotaProtegida';
 import { AppLayout } from './layout/AppLayout';
 import { LoginPage } from './paginas/LoginPage';
 import { PainelPage } from './paginas/PainelPage';
-import { PaginaEmBreve } from './paginas/PaginaEmBreve';
 import { HabitosPage } from './paginas/habitos/HabitosPage';
 import { FinancasPage } from './paginas/financas/FinancasPage';
 import { BingoPage } from './paginas/bingo/BingoPage';
+import { RecompensasPage } from './paginas/recompensas/RecompensasPage';
 
 export default function App() {
   return (
@@ -19,7 +19,7 @@ export default function App() {
           <Route path="habitos" element={<HabitosPage />} />
           <Route path="bingo" element={<BingoPage />} />
           <Route path="financas" element={<FinancasPage />} />
-          <Route path="recompensas" element={<PaginaEmBreve titulo="Recompensas" />} />
+          <Route path="recompensas" element={<RecompensasPage />} />
         </Route>
       </Route>
 

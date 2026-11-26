@@ -1,0 +1,35 @@
+.item {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+/* item com pontos e dinheiro suficientes: destaque e um brilho suave */
+.liberado {
+  border-color: var(--mantine-color-teal-filled);
+  background: var(--mantine-color-teal-light);
+  animation: brilho 2.4s ease-in-out infinite;
+}
+
+@keyframes brilho {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--mantine-color-teal-light);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .liberado {
+    animation: none;
+    transition: none;
+  }
+}

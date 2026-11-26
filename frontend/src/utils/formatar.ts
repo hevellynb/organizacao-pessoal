@@ -75,3 +75,8 @@ export function ultimoDiaDoMes(mes: string): string {
 export function dataCurta(iso: string): string {
   return iso.split('-').reverse().join('/');
 }
+
+/** "2026-11-26T14:30:00-03:00" vira "26/11/2026". */
+export function dataDoTimestamp(iso: string): string {
+  return new Date(iso).toLocaleDateString('pt-BR');
+}
