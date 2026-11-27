@@ -1,0 +1,14 @@
+/* troca suave entre tema claro e escuro */
+body {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+/* quando "animações" está desativado nas configurações, nada se move */
+html[data-sem-animacoes] *,
+html[data-sem-animacoes] *::before,
+html[data-sem-animacoes] *::after {
+  animation: none !important;
+  transition: none !important;
+}

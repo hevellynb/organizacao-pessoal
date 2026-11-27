@@ -18,6 +18,7 @@ import { Navigate, useLocation } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { useAuth } from '../auth/useAuth';
 import { AlternarTema } from '../componentes/AlternarTema';
+import { Logo } from '../componentes/Logo';
 
 const EMAIL_VALIDO = /^\S+@\S+\.\S+$/;
 
@@ -134,6 +135,7 @@ export function LoginPage() {
       </Box>
       <Paper withBorder shadow="md" radius="lg" p="xl" w="100%" maw={420}>
         <Stack gap={4} mb="md" align="center">
+          <Logo tamanho={52} />
           <Title order={2}>Organização Pessoal</Title>
           <Text c="dimmed" size="sm" ta="center">
             Hábitos, finanças e recompensas em um só lugar.

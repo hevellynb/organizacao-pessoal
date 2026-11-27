@@ -7,6 +7,7 @@ import { HabitosPage } from './paginas/habitos/HabitosPage';
 import { FinancasPage } from './paginas/financas/FinancasPage';
 import { BingoPage } from './paginas/bingo/BingoPage';
 import { RecompensasPage } from './paginas/recompensas/RecompensasPage';
+import { ConfiguracoesPage } from './paginas/configuracoes/ConfiguracoesPage';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="bingo" element={<BingoPage />} />
           <Route path="financas" element={<FinancasPage />} />
           <Route path="recompensas" element={<RecompensasPage />} />
+          <Route path="configuracoes" element={<ConfiguracoesPage />} />
         </Route>
       </Route>
 
