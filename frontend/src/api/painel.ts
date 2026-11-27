@@ -1,4 +1,6 @@
 import { api } from './cliente';
+import type { PainelFinanceiro } from './financas';
+import type { ItemDesejo } from './recompensas';
 
 export interface PainelGeral {
   mes: string;
@@ -11,20 +13,10 @@ export interface PainelGeral {
     pontosDoMes: number;
   };
   saldoPontos: number;
-  financas: {
-    renda: number;
-    totalDespesas: number;
-    saldoDisponivel: number;
-    saldoAposMetas: number;
-  };
-  recompensasDisponiveis: {
-    id: string;
-    nome: string;
-    precoEstimado: number;
-    pontosNecessarios: number;
-  }[];
+  financas: PainelFinanceiro;
+  recompensasDisponiveis: ItemDesejo[];
 }
 
-export function buscarPainel(mes: string): Promise<PainelGeral> {
+export function buscarPainel(mes: string) {
   return api<PainelGeral>(`/api/painel?mes=${mes}`);
 }

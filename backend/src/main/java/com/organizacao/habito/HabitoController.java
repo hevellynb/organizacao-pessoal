@@ -71,4 +71,9 @@ public class HabitoController {
     public List<HistoricoMes> historico(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         return service.historico(UsuarioAtual.id(jwt), id);
     }
+
+    @GetMapping("/sequencia")
+    public SequenciaHabitos sequencia(@AuthenticationPrincipal Jwt jwt) {
+        return service.sequencia(UsuarioAtual.id(jwt));
+    }
 }

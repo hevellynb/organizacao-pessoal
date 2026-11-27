@@ -57,3 +57,11 @@ export const excluirHabito = (id: string) => api<void>(`/api/habitos/${id}`, { m
 
 export const marcarHabito = (id: string, dia: string, feito: boolean) =>
   api<void>(`/api/habitos/${id}/registros/${dia}`, { metodo: 'PUT', corpo: { feito } });
+
+export interface SequenciaHabitos {
+  atual: number;
+  melhor: number;
+  hojeFeito: boolean;
+}
+
+export const buscarSequencia = () => api<SequenciaHabitos>('/api/habitos/sequencia');

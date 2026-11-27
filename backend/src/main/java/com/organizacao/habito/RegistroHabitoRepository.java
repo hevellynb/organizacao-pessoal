@@ -30,4 +30,12 @@ public interface RegistroHabitoRepository extends JpaRepository<RegistroHabito, 
         String getMes();
         Long getDias();
     }
+
+    @Query("""
+            select distinct r.data
+            from RegistroHabito r, Habito h
+            where r.habitoId = h.id and h.usuarioId = :usuarioId and r.data <= :ate
+            order by r.data asc
+            """)
+    List<LocalDate> diasComRegistro(@Param("usuarioId") UUID usuarioId, @Param("ate") LocalDate ate);
 }

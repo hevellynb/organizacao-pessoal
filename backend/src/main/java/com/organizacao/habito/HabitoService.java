@@ -95,6 +95,34 @@ public class HabitoService {
                 .map(m -> new HistoricoMes(m.getMes(), m.getDias())).toList();
     }
 
+    @Transactional(readOnly = true)
+    public SequenciaHabitos sequencia(UUID usuarioId) {
+        LocalDate hoje = LocalDate.now(ZONA);
+        List<LocalDate> dias = registros.diasComRegistro(usuarioId, hoje);
+        Set<LocalDate> ativos = new HashSet<>(dias);
+
+        // sequência atual: anda para trás a partir de hoje (ou de ontem, se hoje ainda não foi feito)
+        boolean hojeFeito = ativos.contains(hoje);
+        LocalDate cursor = hojeFeito ? hoje : hoje.minusDays(1);
+        int atual = 0;
+        while (ativos.contains(cursor)) {
+            atual++;
+            cursor = cursor.minusDays(1);
+        }
+
+        // melhor sequência: percorre todos os dias ativos em ordem
+        int melhor = 0;
+        int corrente = 0;
+        LocalDate anterior = null;
+        for (LocalDate dia : dias) {
+            corrente = (anterior != null && dia.equals(anterior.plusDays(1))) ? corrente + 1 : 1;
+            melhor = Math.max(melhor, corrente);
+            anterior = dia;
+        }
+
+        return new SequenciaHabitos(atual, melhor, hojeFeito);
+    }
+
     // ---------- apoio ----------
     private Habito buscar(UUID usuarioId, UUID id) {
         return habitos.findByIdAndUsuarioId(id, usuarioId)
