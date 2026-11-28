@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { ApiError } from '../api/cliente';
 import { useAuth } from '../auth/useAuth';
@@ -116,6 +116,10 @@ export function LoginPage() {
   const { usuario, carregando } = useAuth();
   const local = useLocation();
   const destino = (local.state as { de?: string } | null)?.de ?? '/';
+
+  useEffect(() => {
+    document.title = 'Entrar · Organização Pessoal';
+  }, []);
 
   if (carregando) {
     return (

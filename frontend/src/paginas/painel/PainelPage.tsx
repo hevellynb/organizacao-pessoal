@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { buscarPainel } from '../../api/painel';
 import { CartaoResumo } from '../../componentes/CartaoResumo';
-import { Carregando, ErroDeCarga } from '../../componentes/Estados';
+import { ErroDeCarga } from '../../componentes/Estados';
 import { mesAtual, moeda } from '../../utils/formatar';
 import { AcoesRapidas } from './AcoesRapidas';
 import { GastosDoMes } from './GastosDoMes';
@@ -12,11 +12,16 @@ import { HabitosDeHoje } from './HabitosDeHoje';
 import { RecompensasLiberadas } from './RecompensasLiberadas';
 import { ReservaEFundo } from './ReservaEFundo';
 import { Saudacao } from './Saudacao';
+import { EsqueletoPainel } from './EsqueletoPainel';
+import { PrimeirosPassos } from './PrimeirosPassos';
 
 /** Faz o cartão inteiro virar um atalho para outra tela. */
 function Atalho({ para, children }: { para: string; children: ReactNode }) {
   return (
-    <Link to={para} style={{ color: 'inherit', textDecoration: 'none' }}>
+    <Link
+      to={para}
+      style={{ display: 'block', height: '100%', color: 'inherit', textDecoration: 'none' }}
+    >
       {children}
     </Link>
   );
@@ -26,7 +31,7 @@ export function PainelPage() {
   const mes = mesAtual();
   const painel = useQuery({ queryKey: ['painel', mes], queryFn: () => buscarPainel(mes) });
 
-  if (painel.isPending) return <Carregando />;
+  if (painel.isPending) return <EsqueletoPainel />;
   if (painel.isError) return <ErroDeCarga erro={painel.error} aoTentar={() => painel.refetch()} />;
 
   const dados = painel.data;
@@ -37,6 +42,7 @@ export function PainelPage() {
         <Saudacao />
         <AcoesRapidas />
       </Group>
+      <PrimeirosPassos dados={dados} />
 
       <SimpleGrid cols={{ base: 2, md: 4 }}>
         <Atalho para="/habitos">
@@ -59,12 +65,13 @@ export function PainelPage() {
             }
           />
         </Atalho>
-        <Atalho para="/bingo">
+                <Atalho para="/bingo">
           <CartaoResumo
             titulo="Pontos"
             valor={String(dados.saldoPontos)}
             corDoValor={dados.saldoPontos < 0 ? 'red' : undefined}
             detalhe={`${dados.bingo.pontosDoMes} pts no mês · ${dados.recompensasDisponiveis.length} liberada(s)`}
+            reservarBarra
           />
         </Atalho>
         <Atalho para="/financas">
@@ -73,6 +80,7 @@ export function PainelPage() {
             valor={moeda(dados.financas.saldoDisponivel)}
             corDoValor={dados.financas.saldoDisponivel < 0 ? 'red' : undefined}
             detalhe={`Livre após as metas: ${moeda(dados.financas.saldoAposMetas)}`}
+            reservarBarra
           />
         </Atalho>
       </SimpleGrid>

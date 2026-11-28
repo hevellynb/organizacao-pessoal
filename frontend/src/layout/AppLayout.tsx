@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   AppShell,
   Avatar,
   Burger,
@@ -12,6 +13,8 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconChecklist,
+  IconEye,
+  IconEyeOff,
   IconGift,
   IconLayoutDashboard,
   IconLayoutGrid,
@@ -19,10 +22,12 @@ import {
   IconSettings,
   IconWallet,
 } from '@tabler/icons-react';
+import { useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../auth/useAuth';
 import { AlternarTema } from '../componentes/AlternarTema';
 import { Logo } from '../componentes/Logo';
+import { usePrivacidade } from '../privacidade/usePrivacidade';
 import classes from './Layout.module.css';
 
 const itensDoMenu = [
@@ -49,8 +54,15 @@ export function AppLayout() {
   const navigate = useNavigate();
   const tema = useMantineTheme();
   const { usuario, sair } = useAuth();
+  const [ocultos, alternarPrivacidade] = usePrivacidade();
 
   const exibicao = usuario?.apelido || usuario?.nome || '';
+
+  // título da aba do navegador: "Finanças · Organização Pessoal"
+  const itemAtual = itensDoMenu.find((item) => item.rota === pathname);
+  useEffect(() => {
+    document.title = `${itemAtual?.rotulo ?? 'Organização Pessoal'} · Organização Pessoal`;
+  }, [itemAtual]);
 
   return (
     <AppShell
@@ -69,6 +81,15 @@ export function AppLayout() {
           </Group>
 
           <Group gap="sm">
+            <ActionIcon
+              variant="default"
+              size="lg"
+              onClick={alternarPrivacidade}
+              aria-label={ocultos ? 'Mostrar valores' : 'Ocultar valores'}
+              title={ocultos ? 'Mostrar valores' : 'Ocultar valores'}
+            >
+              {ocultos ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+            </ActionIcon>
             <AlternarTema />
             <Menu position="bottom-end" width={230}>
               <Menu.Target>
@@ -118,8 +139,8 @@ export function AppLayout() {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        {/* a "key" recria o bloco a cada rota, e isso reinicia a animação de entrada */}
-        <div key={pathname} className={classes.pagina}>
+        {/* a "key" recria a tela a cada rota e também ao alternar a privacidade (para refazer os valores) */}
+        <div key={`${pathname}-${ocultos}`} className={classes.pagina}>
           <Outlet />
         </div>
       </AppShell.Main>

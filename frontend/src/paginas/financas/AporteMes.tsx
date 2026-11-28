@@ -1,5 +1,5 @@
 import { ActionIcon, Badge, Button, Card, Group, SimpleGrid, Stack, Text } from '@mantine/core';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconPigMoney, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
@@ -16,6 +16,7 @@ import { useAposAlterarFinancas } from '../../hooks/useAposAlterarFinancas';
 import { avisarErro, avisarSucesso } from '../../utils/avisos';
 import { dataCurta, mesAtual, moeda } from '../../utils/formatar';
 import { FormularioAporte } from './FormularioAporte';
+import { EstadoVazio } from '../../componentes/EstadoVazio';
 
 const ROTULO_DESTINO: Record<DestinoAporte, string> = {
   RESERVA: 'Reserva',
@@ -98,7 +99,11 @@ export function AportesMes({ mes }: { mes: string }) {
       )}
 
       {aportes.data.length === 0 ? (
-        <Text c="dimmed">Nenhum aporte neste mês.</Text>
+        <EstadoVazio
+          icone={<IconPigMoney size={28} />}
+          titulo="Nenhum aporte neste mês"
+          descricao="Registre o que você guardou na reserva ou no fundo de recompensas."
+        />
       ) : (
         aportes.data.map((aporte) => (
           <Card key={aporte.id} withBorder padding="md">

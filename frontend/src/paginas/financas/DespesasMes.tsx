@@ -1,5 +1,5 @@
 import { ActionIcon, Badge, Button, Group, Menu, Select, Stack, Table, Text } from '@mantine/core';
-import { IconDotsVertical, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconDotsVertical, IconPencil, IconPlus, IconReceipt, IconTrash } from '@tabler/icons-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { excluirDespesa, listarDespesas, type Despesa, type TipoCategoria } from '../../api/financas';
@@ -10,6 +10,7 @@ import { useCategorias } from '../../hooks/useCategorias';
 import { avisarErro, avisarSucesso } from '../../utils/avisos';
 import { dataCurta, moeda } from '../../utils/formatar';
 import { FormularioDespesa } from './FormularioDespesa';
+import { EstadoVazio } from '../../componentes/EstadoVazio';
 
 export function DespesasMes({ mes }: { mes: string }) {
   const [categoriaId, setCategoriaId] = useState<string | null>(null);
@@ -61,7 +62,11 @@ export function DespesasMes({ mes }: { mes: string }) {
       </Group>
 
       {despesas.data.length === 0 ? (
-        <Text c="dimmed">Nenhuma despesa neste mês{categoriaId ? ' para esta categoria' : ''}.</Text>
+        <EstadoVazio
+          icone={<IconReceipt size={28} />}
+          titulo="Nenhuma despesa"
+          descricao={`Nada lançado neste mês${categoriaId ? ' para esta categoria' : ''}. Use o botão "Nova despesa".`}
+        />
       ) : (
         <>
           <Table.ScrollContainer minWidth={560}>

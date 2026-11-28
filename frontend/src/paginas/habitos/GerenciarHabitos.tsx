@@ -19,6 +19,8 @@ import { Carregando, ErroDeCarga } from '../../componentes/Estados';
 import { useAposAlterarHabitos } from '../../hooks/useAposAlterarHabitos';
 import { avisarErro, avisarSucesso } from '../../utils/avisos';
 import { nomeDoMes } from '../../utils/formatar';
+import { IconChecklist } from '@tabler/icons-react';
+import { EstadoVazio } from '../../componentes/EstadoVazio';
 
 function HistoricoModal({ habito, aoFechar }: { habito: Habito | null; aoFechar: () => void }) {
   const { data, isPending, isError, error } = useQuery({
@@ -129,7 +131,15 @@ export function GerenciarHabitos({ aoEditar }: { aoEditar: (habito: Habito) => v
 
   if (isPending) return <Carregando />;
   if (isError) return <ErroDeCarga erro={error} aoTentar={() => refetch()} />;
-  if (habitos.length === 0) return <Text c="dimmed">Nenhum hábito cadastrado ainda.</Text>;
+  if (habitos.length === 0) {
+    return (
+      <EstadoVazio
+        icone={<IconChecklist size={28} />}
+        titulo="Nenhum hábito cadastrado"
+        descricao='Use o botão "Novo hábito" no topo da tela para começar.'
+      />
+    );
+  }
 
   return (
     <Stack>

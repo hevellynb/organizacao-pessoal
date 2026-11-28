@@ -4,6 +4,8 @@ import { buscarListaDoDia, marcarHabito, type HabitoDia } from '../../api/habito
 import { Carregando, ErroDeCarga } from '../../componentes/Estados';
 import { useAposAlterarHabitos } from '../../hooks/useAposAlterarHabitos';
 import { avisarErro } from '../../utils/avisos';
+import { IconChecklist } from '@tabler/icons-react';
+import { EstadoVazio } from '../../componentes/EstadoVazio';
 
 interface LinhaHabitoProps {
   habito: HabitoDia;
@@ -74,7 +76,13 @@ export function ListaDoDia({ dia, ehFuturo }: { dia: string; ehFuturo: boolean }
   if (isPending) return <Carregando />;
   if (isError) return <ErroDeCarga erro={error} aoTentar={() => refetch()} />;
   if (habitos.length === 0) {
-    return <Text c="dimmed">Você ainda não tem hábitos. Crie o primeiro no botão "Novo hábito".</Text>;
+    return (
+      <EstadoVazio
+        icone={<IconChecklist size={28} />}
+        titulo="Nenhum hábito por aqui"
+        descricao='Crie o primeiro no botão "Novo hábito" e marque o que fizer a cada dia.'
+      />
+    );
   }
 
   const feitos = habitos.filter((h) => h.feito).length;

@@ -1,11 +1,24 @@
-import { Alert, Button, Center, Loader, Text } from '@mantine/core';
+import { Alert, Button, SimpleGrid, Skeleton, Stack, Text } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
-export function Carregando() {
+/** Esqueleto: o "contorno cinza" de uma lista enquanto os dados chegam. */
+export function Carregando({ linhas = 3 }: { linhas?: number }) {
   return (
-    <Center h={200}>
-      <Loader />
-    </Center>
+    <Stack gap="sm" aria-busy="true" aria-label="Carregando">
+      {Array.from({ length: linhas }, (_, indice) => (
+        <Skeleton key={indice} height={68} radius="md" />
+      ))}
+    </Stack>
+  );
+}
+
+export function CarregandoCartoes({ quantidade = 4 }: { quantidade?: number }) {
+  return (
+    <SimpleGrid cols={{ base: 2, md: quantidade }} aria-busy="true" aria-label="Carregando">
+      {Array.from({ length: quantidade }, (_, indice) => (
+        <Skeleton key={indice} height={110} radius="md" />
+      ))}
+    </SimpleGrid>
   );
 }
 

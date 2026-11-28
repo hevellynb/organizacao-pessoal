@@ -1,7 +1,9 @@
+import { valoresOcultos } from '../privacidade/armazenamento';
+
 const formatadorMoeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 export function moeda(valor: number): string {
-  return formatadorMoeda.format(valor);
+  return valoresOcultos() ? 'R$ •••••' : formatadorMoeda.format(valor);
 }
 
 function capitalizar(texto: string): string {

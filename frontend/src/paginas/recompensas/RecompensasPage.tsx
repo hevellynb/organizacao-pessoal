@@ -1,5 +1,5 @@
 import { Button, Card, Group, SimpleGrid, Stack, Tabs, Text, Title } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
+import { IconGift, IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { buscarDesejos, excluirItem, type ItemDesejo } from '../../api/recompensas';
@@ -12,6 +12,7 @@ import { dataDoTimestamp, moeda } from '../../utils/formatar';
 import { CartaoItem } from './CartaoItem';
 import { FormularioItem } from './FormularioItem';
 import { ResgatarModal } from './ResgatarModal';
+import { EstadoVazio } from '../../componentes/EstadoVazio';
 
 export function RecompensasPage() {
   const [edicao, setEdicao] = useState<ItemDesejo | 'novo' | null>(null);
@@ -79,9 +80,16 @@ export function RecompensasPage() {
 
         <Tabs.Panel value="desejos" pt="md">
           {pendentes.length === 0 ? (
-            <Text c="dimmed">
-              Sua lista de desejos está vazia. Adicione o primeiro item no botão "Novo item".
-            </Text>
+          <EstadoVazio
+              icone={<IconGift size={28} />}
+              titulo="Sua lista de desejos está vazia"
+              descricao="Cadastre o que você quer ganhar com os seus pontos e o seu fundo."
+              acao={
+                <Button leftSection={<IconPlus size={16} />} onClick={() => setEdicao('novo')}>
+                  Adicionar item
+                </Button>
+              }
+            />
           ) : (
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
               {pendentes.map((item) => (
@@ -101,7 +109,11 @@ export function RecompensasPage() {
 
         <Tabs.Panel value="adquiridos" pt="md">
           {adquiridos.length === 0 ? (
-            <Text c="dimmed">Você ainda não resgatou nenhuma recompensa.</Text>
+            <EstadoVazio
+              icone={<IconGift size={28} />}
+              titulo="Nada resgatado ainda"
+              descricao="Quando você resgatar uma recompensa, ela aparece aqui."
+            />
           ) : (
             <Stack gap="sm">
               {adquiridos.map((item) => (

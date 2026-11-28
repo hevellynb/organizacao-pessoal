@@ -6,6 +6,7 @@ import {
   type TamanhoTexto,
 } from '../../preferencias/dispositivo';
 import type { EstiloEscuro } from '../../preferencias/paletas';
+import { usePrivacidade } from '../../privacidade/usePrivacidade';
 
 function Campo({ rotulo, descricao, children }: { rotulo: string; descricao?: string; children: ReactNode }) {
   return (
@@ -27,6 +28,7 @@ function Campo({ rotulo, descricao, children }: { rotulo: string; descricao?: st
 export function SecaoAparencia() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const { preferencias, atualizar, restaurar } = usePreferenciasDispositivo();
+  const [ocultos, alternarPrivacidade] = usePrivacidade();
 
   return (
     <Card withBorder padding="lg">
@@ -87,6 +89,13 @@ export function SecaoAparencia() {
             ]}
           />
         </Campo>
+
+        <Switch
+          checked={ocultos}
+          onChange={alternarPrivacidade}
+          label="Ocultar valores em reais"
+          description="Troca os valores por R$ ••••• em todas as telas. Também dá para alternar pelo ícone de olho no topo."
+        />
 
         <Switch
           checked={preferencias.animacoes}
